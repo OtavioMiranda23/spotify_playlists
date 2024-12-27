@@ -1,0 +1,33 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# TypeScript
+*.tsbuildinfo
+
+# VSCode settings
+.vscode/
+
+# dotenv
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Optional: Coverage directory used by testing tools
+coverage/
+
+# Optional: Build output (if you are using a build tool like tsc)
+dist/
+build/
+
+# Optional: Jest cache (if you are using Jest for tests)
+jest/
