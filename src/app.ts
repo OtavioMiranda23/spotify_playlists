@@ -33,14 +33,21 @@ async function getSpotifyToken() {
 app.get('/playlist', async function (req: Request, res: Response) {
   try {
     const token = await getSpotifyToken();
-    const playlist = '3cEYpjA9oz9GiPac4AsH4n';
-    const url = `https://api.spotify.com/v1/playlists/${playlist}`;
-    
-    const response = await axios.get(url, {
+    const playlist = '62w0vYw7cTiWlb6d5eAjPv';
+    const fields = "fields=items%28track%28name%2C+album%28name%29%2C+artists%28name%29%29%29"
+    const url = `https://api.spotify.com/v1/playlists/${playlist}/tracks?${fields}`;
+    const response: any = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     }); 
     // Envia apenas a propriedade 'data' da resposta
-    res.json(response.data);
+    const infos = [];
+    for (const item of response.data.items) {
+      const albumName = item.track.album.name;
+      const artistName = item.track.artists.map((artist: any) => artist.name);
+      const musicName = item.track.name;
+      infos.push({ musicName, artistName, albumName })
+    }
+    res.json(infos);
   } catch (error: any) {
     console.error('Erro ao buscar playlist:', error.message);
 
