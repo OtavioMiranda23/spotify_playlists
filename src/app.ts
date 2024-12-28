@@ -39,7 +39,6 @@ app.get('/playlist', async function (req: Request, res: Response) {
     const response: any = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     }); 
-    // Envia apenas a propriedade 'data' da resposta
     const infos = [];
     for (const item of response.data.items) {
       const albumName = item.track.album.name;
