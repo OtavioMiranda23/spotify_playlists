@@ -2,6 +2,8 @@ import axios from 'axios';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import puppeteer from 'puppeteer';
+import Youtube from './entity/Youtube';
+
 dotenv.config();
 const app = express();
 const port = 3015;
@@ -40,19 +42,21 @@ app.post('/playlist', async function (req: Request, res: Response) {
     const response: any = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     }); 
-    const musicInfos: musicInfos[]  = [];    
+    const musicInfos: musicInfos[]  = [];
     for (const item of response.data.items) {
       const albumName = item.track.album.name;
       const artistName = item.track.artists.map((artist: any) => artist.name);
       const musicName = item.track.name;
       musicInfos.push({ musicName, artistName, albumName })
-    };    
+    };
     const youtubeLinks: string[] = [];
     for (const info of musicInfos) {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
-      const urlYoutube = createYoutubeUrl(info);
-      await page.goto(urlYoutube);
+      const youtube = new Youtube(info.musicName, info.artistName, info.albumName);
+      youtube.createSearchUrl();
+      //const urlYoutube = createYoutubeUrl(info);
+      await page.goto(youtube.getSearchUrl());
       const hrefs = await page.evaluate(() => Array.from(
             document.querySelectorAll('a[href]'),
             a => a.getAttribute('href')
@@ -63,7 +67,8 @@ app.post('/playlist', async function (req: Request, res: Response) {
       if (!links[0]) { 
         throw new Error("Não foi encontrado link para a musica");
       };
-      youtubeLinks.push(links[0]);
+      const musicUrl = youtube.createMusicUrl(links[0])
+      youtubeLinks.push(musicUrl);
     }
     res.json(youtubeLinks);
   } catch (error: any) {
