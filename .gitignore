@@ -31,3 +31,4 @@ build/
 
 # Optional: Jest cache (if you are using Jest for tests)
 jest/
+front/

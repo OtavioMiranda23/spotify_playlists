@@ -4,7 +4,8 @@ export default class Youtube {
   private album: string;
   private searchUrl: string = "";
   private musicUrl: string = "https://www.youtube.com";
-  private baseSearchUrl = "https://www.youtube.com/results?search_query=";
+  private baseYoutubeSearchUrl = "https://www.youtube.com/results?search_query=";
+  private baseGoogleSearchUrl = "https://www.google.com/search?q=";
 
   constructor(music: string, artist: string[], album: string) {
     if (!music) throw new Error("Music não encontradada");
@@ -15,20 +16,36 @@ export default class Youtube {
     this.album = album;    
   };
 
-  public createSearchUrl(): void {
+  public createSearchYoutubeUrl(): void {
     const artist = this.artist.toString().replaceAll(" ", "+").replaceAll(",", "+");
     const album = this.album.replaceAll(" ", "+");
     const music = this.music.replaceAll(" ", "+");
-    this.searchUrl = `${this.baseSearchUrl}+${music}+${artist}+${album}`;
+    this.searchUrl = `${this.baseYoutubeSearchUrl}+${music}+${artist}+${album}`;
   };
 
+  public createSearchGoogleUrl(): void {
+    const artist = this.artist.toString().replaceAll(" ", "+").replaceAll(",", "+");
+    const album = this.album.replaceAll(" ", "+");
+    const music = this.music.replaceAll(" ", "+");
+    this.searchUrl = `${this.baseGoogleSearchUrl}+${music}+${artist}+${album}&tbm=vid`;
+  };
+  public createSearchGoogleUrlWithoutAlbum(): void {
+    const artist = this.artist.toString().replaceAll(" ", "+").replaceAll(",", "+");
+    const album = this.album.replaceAll(" ", "+");
+    const music = this.music.replaceAll(" ", "+");
+    this.searchUrl = `${this.baseGoogleSearchUrl}+${music}+${artist}&tbm=vid`;
+  };
   public getSearchUrl() {
     if (!this.searchUrl) throw new Error("SearchUrl inválida");
     return this.searchUrl;
   };
 
-  public createMusicUrl(url: string): string {
-    if (!url) throw new Error("Url inválida");
-    return this.musicUrl + url;
+  public createMusicUrl(id: string): string {
+    if (!id) throw new Error("Id inválido");
+    return `https://www.youtube.com/watch?v=${id}`;
   };
+
+  public getMusicName() {
+    return this.music;
+  }
 };

@@ -1,8 +1,10 @@
 import puppeteer from 'puppeteer';
 import Youtube from '../entity/Youtube';
+import LinkGenerator from './LinkGenerator';
+import { Output } from './CreateYoutubeLinkParallel';
 
-export default class CreateYoutubeLinks {
-  public async execute(items: any): Promise<string[]> {    
+export default class CreateYoutubeLinks implements LinkGenerator {
+  public async execute(items: any): Promise<Output[]> {    
     const musicInfos: musicInfos[]  = [];
     for (const item of items) {
       const albumName = item.track.album.name;
@@ -10,12 +12,12 @@ export default class CreateYoutubeLinks {
       const musicName = item.track.name;
       musicInfos.push({ musicName, artistName, albumName })
     };
-    const youtubeLinks: string[] = [];
+    const youtubeLinks: Output[] = [];
     for (const info of musicInfos) {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
       const youtube = new Youtube(info.musicName, info.artistName, info.albumName);
-      youtube.createSearchUrl();
+      youtube.createSearchYoutubeUrl();
       await page.goto(youtube.getSearchUrl());
       const hrefs = await page.evaluate(() => Array.from(
             document.querySelectorAll('a[href]'),
@@ -28,13 +30,13 @@ export default class CreateYoutubeLinks {
         throw new Error("Não foi encontrado link para a musica");
       };
       const musicUrl = youtube.createMusicUrl(links[0])
-      youtubeLinks.push(musicUrl);
+      youtubeLinks.push({ name: youtube.getMusicName(), url: musicUrl });
     }
     return youtubeLinks;
   };
 };
 
-type musicInfos = {
+export type musicInfos = {
   artistName: string[],
   musicName: string,
   albumName: string

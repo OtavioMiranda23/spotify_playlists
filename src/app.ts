@@ -1,7 +1,9 @@
 import axios from 'axios';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import CreateYoutubeLinks from './usecase/createYoutubeLink';
+import  CreateYoutubeLinksParallel, { Output } from './usecase/CreateYoutubeLinkParallel';
+import CreateYoutubeLinksAxios from './usecase/CreateYoutubeLinkAxios';
+import { CreateLinkFactory } from './factory/CreateLinkFactory';
 
 dotenv.config();
 const app = express();
@@ -32,7 +34,7 @@ async function getSpotifyToken() {
   }
 }
 
-app.post('/spotifytoyoutube', async function (req: Request, res: Response) {
+app.post('/convert', async function (req: Request, res: Response) {
   try {
     const token = await getSpotifyToken();
     const playlist = req.body.playlist;
@@ -41,8 +43,10 @@ app.post('/spotifytoyoutube', async function (req: Request, res: Response) {
     const response: any = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     }); 
-    const youtubeLinks: string[] = await new CreateYoutubeLinks().execute(response.data.items);
-    res.json(youtubeLinks);
+    console.log(response.data.items.length);
+    
+    const youtubeLinks: Output[] = await CreateLinkFactory(response.data.items);
+    res.status(201).json(youtubeLinks)
   } catch (error: any) {
     console.error('Erro ao buscar playlist:', error.message);
 
