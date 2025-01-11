@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import Youtube from '../entity/Youtube';
 import LinkGenerator from './LinkGenerator';
-import { Output } from './CreateYoutubeLinkParallel';
+import { Output } from './CreateYoutubeLinksParallelWithGoogle';
 
 export default class CreateYoutubeLinks implements LinkGenerator {
   public async execute(items: any): Promise<Output[]> {    

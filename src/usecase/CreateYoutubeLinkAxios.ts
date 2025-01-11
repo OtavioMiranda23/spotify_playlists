@@ -1,22 +1,15 @@
 import Youtube from '../entity/Youtube';
 import LinkGenerator from './LinkGenerator';
-import { Output } from './CreateYoutubeLinkParallel';
+import { Output } from './CreateYoutubeLinksParallelWithGoogle';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 export default class CreateYoutubeLinksAxios implements LinkGenerator {
   private failedLinks: musicInfos[] = [];
   private maxRetry = 0;
-  public async execute(items: any): Promise<Output[]> {    
-    const musicInfos: musicInfos[]  = [];
-    for (const item of items) {
-      const albumName = item.track.album.name;
-      const artistName = item.track.artists.map((artist: any) => artist.name);
-      const musicName = item.track.name;
-      musicInfos.push({ musicName, artistName, albumName })
-    };
+  public async execute(musicInfos: musicInfos[]): Promise<Output[]> {    
     const youtubeLinks: Output[] = [];
-    for (const info of musicInfos) {
+    for (const info of musicInfos) {      
       const youtube = new Youtube(info.musicName, info.artistName, info.albumName);
       youtube.createSearchGoogleUrl()
       const response = await axios.get(youtube.getSearchUrl());

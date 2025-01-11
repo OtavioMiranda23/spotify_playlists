@@ -1,55 +1,50 @@
 import axios from 'axios';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import  CreateYoutubeLinksParallel, { Output } from './usecase/CreateYoutubeLinkParallel';
-import CreateYoutubeLinksAxios from './usecase/CreateYoutubeLinkAxios';
+import  { musicInfos, Output } from './usecase/CreateYoutubeLinksParallelWithGoogle';
 import { CreateLinkFactory } from './factory/CreateLinkFactory';
+import { sleep } from './utils/Sleep';
+import { SpotifyService } from './service/SpotifyService';
 
 dotenv.config();
 const app = express();
 const port = 3015;
 app.use(express.json());
 
-async function getSpotifyToken() {
-  const clientId = process.env.CLIENT_ID;
-  if (!clientId) throw new Error("ClientId não definido");
-  const clientSecret = process.env.CLIENT_SECRET;
-  if (!clientSecret) throw new Error("clientSecret não definido");
-  const authString = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  try {
-    const response = await axios.post(
-      'https://accounts.spotify.com/api/token',
-      'grant_type=client_credentials',
-      {
-        headers: {
-          Authorization: `Basic ${authString}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-    return response.data.access_token;
-  } catch (error) {
-    console.error('Erro ao obter token:', error);
-    throw error;
-  }
-}
+
 
 app.post('/convert', async function (req: Request, res: Response) {
   try {
-    const token = await getSpotifyToken();
+    const spotifyService = new SpotifyService();
+    const token = await spotifyService.getSToken();
     const playlist = req.body.playlist;
-    const fields = "fields=items%28track%28name%2C+album%28name%29%2C+artists%28name%29%29%29"
-    const url = `https://api.spotify.com/v1/playlists/${playlist}/tracks?${fields}`;
-    const response: any = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    }); 
-    console.log(response.data.items.length);
-    
-    const youtubeLinks: Output[] = await CreateLinkFactory(response.data.items);
-    res.status(201).json(youtubeLinks)
+    const limitPage = 2; 
+    let hasNextPage = true;
+    let url = `https://api.spotify.com/v1/playlists/${playlist}/tracks?limit=${limitPage}`;
+    const youtubeLinks = [];
+    for (let i = 1; i < 4 && hasNextPage; i++) {    
+      const response: any = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      url = response.data.next;      
+      const items: playlistItem[] = response.data.items;
+      if (response.data.next === null) {
+        hasNextPage = false;
+      } 
+      const datasFromApi = [];
+      for (const item of items) {
+        const dataFromApi = extractDataFromApiSpotify(item);
+        if(!dataFromApi.musicName) continue
+        datasFromApi.push(dataFromApi); 
+      }
+      const links: Output[] | undefined = await CreateLinkFactory(datasFromApi, i);
+      console.log(`Final Links ${i}:`, links);
+      if (links) youtubeLinks.push(links
+      );
+    };
+    res.status(201).json(youtubeLinks.flat())
   } catch (error: any) {
-    console.error('Erro ao buscar playlist:', error.message);
-
+    console.error('Erro ao buscar playlist:', error);
     // Trata os erros da API do Spotify
     if (error.response) {
       return res.status(error.response.status).json(error.response.data);
@@ -62,3 +57,18 @@ app.post('/convert', async function (req: Request, res: Response) {
 app.listen(port, () => {
   console.log(`Express is listening at http://localhost:${port}`);
 });
+
+function extractDataFromApiSpotify(item: playlistItem): musicInfos  {
+  const musicName = item.track.name;
+  const artistName = item.track.artists.map(artist => artist.name);
+  const albumName = item.track.album.name;  
+  return { musicName, artistName, albumName };
+};
+
+type playlistItem  = {
+  track: {
+      name: string;
+      artists: { name: string }[];
+      album: { name: string };
+  };
+}

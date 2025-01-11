@@ -1,7 +1,11 @@
-import CreateYoutubeLinksAxios from "../usecase/CreateYoutubeLinkAxios";
-import CreateYoutubeLinksParallel, { Output } from "../usecase/CreateYoutubeLinkParallel";
+import CreateYoutubeLinkParallelWithDuck from "../usecase/CreateYoutubeLinksParallelWithDuck";
+import CreateYoutubeLinkParallelWithBing from "../usecase/CreateYoutubeLinkParallelWithBrave";
+import CreateYoutubeLinksParallelWithGoogle, { Output } from "../usecase/CreateYoutubeLinksParallelWithGoogle";
 
-export function CreateLinkFactory(youtubeLinks: any): Promise<Output[]> {
-  if (youtubeLinks.length > 20) return new CreateYoutubeLinksParallel().execute(youtubeLinks);
-  return new CreateYoutubeLinksAxios().execute(youtubeLinks);
+export function CreateLinkFactory(youtubeLinks: any, counter: number): Promise<Output[] | undefined> {
+  console.log(counter);
+  
+  if (counter === 1) return new CreateYoutubeLinksParallelWithGoogle(youtubeLinks).execute();
+  if (counter === 2) return new CreateYoutubeLinkParallelWithDuck(youtubeLinks).execute();
+  return new CreateYoutubeLinkParallelWithBing(youtubeLinks).execute();
 };

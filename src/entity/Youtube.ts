@@ -3,7 +3,6 @@ export default class Youtube {
   private artist: string[];
   private album: string;
   private searchUrl: string = "";
-  private musicUrl: string = "https://www.youtube.com";
   private baseYoutubeSearchUrl = "https://www.youtube.com/results?search_query=";
   private baseGoogleSearchUrl = "https://www.google.com/search?q=";
 
@@ -12,7 +11,10 @@ export default class Youtube {
     this.music = music;
     if (!artist) throw new Error("Artist não encontrado");
     this.artist = artist;
-    if (!album) throw new Error("Album não encontrado");
+    if (!album) {     
+      this.album = "";
+      return;
+    };
     this.album = album;    
   };
 
@@ -31,7 +33,6 @@ export default class Youtube {
   };
   public createSearchGoogleUrlWithoutAlbum(): void {
     const artist = this.artist.toString().replaceAll(" ", "+").replaceAll(",", "+");
-    const album = this.album.replaceAll(" ", "+");
     const music = this.music.replaceAll(" ", "+");
     this.searchUrl = `${this.baseGoogleSearchUrl}+${music}+${artist}&tbm=vid`;
   };

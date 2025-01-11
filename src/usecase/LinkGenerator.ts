@@ -1,5 +1,5 @@
-import { Output } from "./CreateYoutubeLinkParallel";
+import { musicInfos, Output } from "./CreateYoutubeLinksParallelWithGoogle";
 
 export default interface LinkGenerator {
-  execute(musicInfos: any): Promise<Output[]>;
+  execute(musicInfos: musicInfos[]): Promise<Output[] | undefined>;
 }
