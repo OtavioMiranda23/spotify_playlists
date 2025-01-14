@@ -1,9 +1,9 @@
 {
-  "name": "spotfy_playlist",
+  "name": "spotfiy_playlist",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "main.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/main.ts",
     "test": "npx jest"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
@@ -25,6 +26,7 @@
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "puppeteer": "^23.11.1",
     "puppeteer-cluster": "^0.24.0"
   }

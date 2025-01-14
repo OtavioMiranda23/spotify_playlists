@@ -1,4 +1,6 @@
 import axios from "axios";
+import { musicInfos } from "../usecase/CreateYoutubeLinksParallelWithGoogle";
+import { playlistItem } from "../controllers/spotifyController";
 
 export class SpotifyService {
   private clientId = process.env.CLIENT_ID;
@@ -29,4 +31,12 @@ export class SpotifyService {
       throw error;
     }
   }
+
+extractDataFromApiSpotify(item: playlistItem): musicInfos  {
+  const musicName = item.track.name;
+  const artistName = item.track.artists.map(artist => artist.name);
+  const albumName = item.track.album.name;  
+  return { musicName, artistName, albumName };
+};
+
 }
