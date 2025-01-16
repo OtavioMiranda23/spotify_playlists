@@ -1,6 +1,6 @@
 import axios from "axios";
 import { musicInfos } from "../usecase/CreateYoutubeLinksParallelWithGoogle";
-import { playlistItem } from "../controllers/spotifyController";
+import { playlistItem } from "../infra/controllers/spotifyController";
 
 export class SpotifyService {
   private clientId = process.env.CLIENT_ID;

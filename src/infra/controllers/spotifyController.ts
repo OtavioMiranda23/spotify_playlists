@@ -1,19 +1,26 @@
 import axios from 'axios';
 
-import { CreateLinkFactory } from '../factory/CreateLinkFactory';
-import { SpotifyService } from '../service/SpotifyService';
-import { Output } from '../usecase/CreateYoutubeLinksParallelWithGoogle';
+import { SpotifyService } from '../../service/SpotifyService';
+import { Output } from '../../usecase/CreateYoutubeLinksParallelWithGoogle';
 import { Application, NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload }  from 'jsonwebtoken'
+import CreateUser from '../../usecase/CreateUser';
+import UserRepository from '../repositories/UserRepository';
+import { CreateLinkFactory } from '../factory/CreateLinkFactory';
 
 let SECRET = 'otaviomda'
 
 interface DecodedToken extends JwtPayload {
   userId: string;
 }
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 export default class SpotifyController {
-  constructor(readonly app: Application) {
+  public blacklist: string[] = [];
+  
+  constructor(readonly app: Application, readonly createUser: CreateUser) {
   }
 
   convertPlaylist () {
@@ -60,15 +67,21 @@ export default class SpotifyController {
       }
     });
   }
-  verifyJWT(req: Request, res: Response, next: NextFunction) {
+
+  register() {
+    this.app.post('/register', async (req: Request, res: Response) => {
+      const { username, email, password } = req.body;
+      this.createUser.execute({ username, email, password })
+    })
+  }
+
+  verifyJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const token = req.headers['x-access-token'];
-    if (!token) res.status(400).end();
-    //@ts-ignore
-    jwt.verify(token, SECRET, (err: any, decoded: any) => {
-      if(err) return err.status(401).end();
+    if (!token|| typeof token !== 'string') return res.status(400).json( { error: "Token não fornecido"});
+    jwt.verify(token, SECRET, (err, decoded) => {
+      if(err) return res.status(401).json({ error: 'Token inválido ou expirado.' });
       const payload = decoded as DecodedToken
-      //@ts-ignore
-      req.userId = decoded.userId;
+      req.userId = payload.userId;
       next();
     })
   }
@@ -81,7 +94,15 @@ export default class SpotifyController {
       }
       res.status(401).end();
     })
+  }
 
+  logout() {
+    this.app.post('/logout',  (req, res) => {
+      const token = req.headers['x-access-token'];
+      if (!token || typeof token !== 'string') return res.status(400).json({ error: "Token não fornecido ou inválido" });
+      this.blacklist.push(token);
+      res.status(200).json({ message: "Logout realizado com sucesso." });
+    }) 
   }
 
 }
